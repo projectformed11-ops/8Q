@@ -1,0 +1,475 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>แบบประเมินความเสี่ยงการฆ่าตัวตาย (8Q)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Thai:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  /* สัดส่วนสี 60 / 30 / 10 : ครีม / ชมพู / น้ำตาล */
+  :root {
+    --cream: #fcf7d9;   /* 60% พื้นหลังหลัก */
+    --pink:  #f6d8d6;   /* 30% การ์ด / พื้นที่รอง */
+    --brown: #604734;   /* 10% จุดเด่น: หัวข้อ ปุ่ม ตัวเลือกที่เลือก */
+    --brown-line: rgba(96, 71, 52, .22);
+    --radius: 18px;
+  }
+
+  * { box-sizing: border-box; }
+
+  body {
+    margin: 0;
+    font-family: "Noto Sans Thai", "Sarabun", system-ui, sans-serif;
+    background: var(--cream);
+    color: var(--brown);
+    line-height: 1.7;
+    font-size: 17px;
+  }
+
+  .wrap { max-width: 760px; margin: 0 auto; padding: 28px 16px 64px; }
+  .hidden { display: none !important; }
+
+  header { text-align: center; margin-bottom: 22px; }
+  header h1 {
+    margin: 0 0 6px;
+    font-size: clamp(1.5rem, 4.5vw, 2rem);
+    font-weight: 700;
+  }
+  header .sub { margin: 0; opacity: .85; font-size: .95rem; }
+
+  .notice {
+    background: var(--pink);
+    border-left: 6px solid var(--brown);
+    border-radius: 12px;
+    padding: 12px 16px;
+    font-size: .92rem;
+    margin-bottom: 22px;
+  }
+
+  /* แถบความคืบหน้า */
+  .progress-box { margin-bottom: 20px; }
+  .progress-label { display: flex; justify-content: space-between; font-size: .9rem; font-weight: 600; margin-bottom: 6px; }
+  .progress-track { height: 10px; background: var(--pink); border-radius: 99px; overflow: hidden; }
+  .progress-bar { height: 100%; width: 0; background: var(--brown); border-radius: 99px; transition: width .35s ease; }
+
+  /* การ์ดคำถาม */
+  .q-card {
+    background: var(--pink);
+    border-radius: var(--radius);
+    padding: 20px 20px 18px;
+    margin-bottom: 16px;
+    border: 2px solid transparent;
+    transition: border-color .2s;
+  }
+  .q-card.missing { border-color: var(--brown); animation: shake .35s; }
+  @keyframes shake { 25% { transform: translateX(-5px);} 75% { transform: translateX(5px);} }
+
+  .q-title { display: flex; gap: 12px; align-items: flex-start; margin: 0 0 14px; font-weight: 600; }
+  .q-num {
+    flex: none;
+    width: 34px; height: 34px;
+    display: grid; place-items: center;
+    background: var(--brown); color: var(--cream);
+    border-radius: 50%;
+    font-size: .95rem; font-weight: 700;
+  }
+
+  .options { display: flex; flex-wrap: wrap; gap: 10px; }
+  .opt { position: relative; flex: 1 1 140px; }
+  .opt input { position: absolute; opacity: 0; inset: 0; width: 100%; height: 100%; margin: 0; cursor: pointer; }
+  .opt span {
+    display: block;
+    text-align: center;
+    padding: 10px 14px;
+    border-radius: 12px;
+    background: var(--cream);
+    border: 2px solid var(--brown-line);
+    font-weight: 500;
+    transition: all .15s;
+  }
+  .opt:hover span { border-color: var(--brown); }
+  .opt input:focus-visible + span { outline: 3px solid var(--brown); outline-offset: 2px; }
+  .opt input:checked + span {
+    background: var(--brown);
+    color: var(--cream);
+    border-color: var(--brown);
+    font-weight: 700;
+  }
+
+  /* คำถามย่อย */
+  .sub-wrap {
+    display: none;
+    margin-top: 16px;
+    padding: 14px 14px 4px;
+    background: rgba(252, 247, 217, .65);
+    border-radius: 14px;
+    border: 2px dashed var(--brown-line);
+  }
+  .sub-wrap.show { display: block; }
+  .sub-q { margin-bottom: 14px; border-radius: 10px; }
+  .sub-q.missing { outline: 2px solid var(--brown); outline-offset: 4px; }
+  .sub-label { font-weight: 600; margin: 0 0 8px; font-size: .97rem; }
+  .sub-tag { color: var(--cream); background: var(--brown); border-radius: 8px; padding: 1px 8px; margin-right: 6px; font-size: .85rem; }
+
+  /* ปุ่ม */
+  .actions { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 24px; }
+  button {
+    font-family: inherit;
+    font-size: 1rem;
+    font-weight: 600;
+    padding: 13px 26px;
+    border-radius: 14px;
+    cursor: pointer;
+    border: 2px solid var(--brown);
+    transition: transform .1s, opacity .2s;
+  }
+  button:active { transform: scale(.97); }
+  .btn-primary { background: var(--brown); color: var(--cream); flex: 2 1 220px; }
+  .btn-primary:hover { opacity: .9; }
+  .btn-ghost { background: transparent; color: var(--brown); flex: 1 1 140px; }
+  .btn-ghost:hover { background: var(--pink); }
+
+  .error-msg { display: none; margin-top: 14px; font-weight: 600; background: var(--pink); border: 2px solid var(--brown); border-radius: 12px; padding: 10px 14px; }
+  .error-msg.show { display: block; }
+
+  /* ผลการประเมิน */
+  .score-card {
+    background: var(--pink);
+    border-radius: var(--radius);
+    padding: 28px 20px;
+    text-align: center;
+    border: 3px solid var(--brown);
+  }
+  .score-card .score-label { font-size: .95rem; opacity: .85; margin: 0; }
+  .score-card .score-num { font-size: 4rem; font-weight: 700; line-height: 1.1; margin: 4px 0; }
+  .score-card .level {
+    display: inline-block;
+    background: var(--brown); color: var(--cream);
+    padding: 8px 20px; border-radius: 99px;
+    font-weight: 700; font-size: 1.1rem; margin: 6px 0 12px;
+  }
+  .score-card .advice { margin: 0; font-size: .98rem; }
+
+  .help-box {
+    margin-top: 16px;
+    background: var(--cream);
+    border: 2px solid var(--brown);
+    border-radius: 14px;
+    padding: 14px 18px;
+    font-size: .95rem;
+  }
+  .help-box.urgent { background: var(--brown); color: var(--cream); }
+  .help-box strong { font-size: 1.05rem; }
+  .help-box ul { margin: 6px 0 0; padding-left: 20px; }
+
+  .scale { margin-top: 16px; font-size: .88rem; opacity: .9; }
+  .scale ul { margin: 4px 0 0; padding-left: 20px; }
+
+  footer { text-align: center; margin-top: 40px; font-size: .85rem; opacity: .75; }
+
+  @media (max-width: 480px) {
+    body { font-size: 16px; }
+    .q-card { padding: 16px 14px; }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header>
+    <h1>แบบประเมินความเสี่ยงการฆ่าตัวตาย (8Q)</h1>
+    <p class="sub" id="subText">กรุณาตอบให้ครบทุกข้อ แล้วกดดูผลการประเมิน</p>
+  </header>
+
+  <!-- ===== มุมมองแบบฟอร์ม ===== -->
+  <div id="formView">
+    <div class="notice">
+      แบบประเมินนี้เป็นเพียงเครื่องมือคัดกรองเบื้องต้น ไม่ใช่การวินิจฉัยโรค
+      หากรู้สึกไม่ปลอดภัยหรือกำลังตกอยู่ในภาวะวิกฤต โปรดติดต่อ <strong>สายด่วนสุขภาพจิต 1323</strong>
+      หรือ <strong>1669</strong> (ฉุกเฉิน) ได้ตลอด 24 ชั่วโมง
+    </div>
+
+    <div class="progress-box">
+      <div class="progress-label"><span>ความคืบหน้า</span><span id="progressText">0 / 8</span></div>
+      <div class="progress-track"><div class="progress-bar" id="progressBar"></div></div>
+    </div>
+
+    <form id="form" novalidate>
+      <div id="questions"></div>
+      <div class="error-msg" id="errorMsg">กรุณาตอบคำถามให้ครบทุกข้อ (ข้อที่ยังไม่ได้ตอบถูกไฮไลต์ไว้)</div>
+      <div class="actions">
+        <button type="submit" class="btn-primary" id="submitBtn">ดูผลการประเมิน</button>
+        <button type="button" class="btn-ghost" id="resetBtn">ล้างคำตอบ</button>
+      </div>
+    </form>
+  </div>
+
+  <!-- ===== มุมมองผลการประเมิน ===== -->
+  <div id="resultView" class="hidden">
+    <div class="score-card">
+      <p class="score-label">คะแนนรวม</p>
+      <div class="score-num" id="totalScore">0</div>
+      <div class="level" id="levelText"></div>
+      <p class="advice" id="adviceText"></p>
+    </div>
+
+    <div class="help-box" id="helpBox"></div>
+
+    <div class="scale">
+      เกณฑ์การแปลผล
+      <ul>
+        <li>0 คะแนน : ไม่มีแนวโน้มจากแบบประเมินนี้</li>
+        <li>1–8 คะแนน : แนวโน้มที่จะฆ่าตัวตายระดับน้อย</li>
+        <li>9–16 คะแนน : แนวโน้มที่จะฆ่าตัวตายระดับปานกลาง</li>
+        <li>17 คะแนนขึ้นไป : แนวโน้มที่จะฆ่าตัวตายระดับรุนแรง</li>
+      </ul>
+    </div>
+
+    <div class="actions">
+      <button type="button" class="btn-primary" id="newBtn">ประเมินใหม่</button>
+    </div>
+  </div>
+
+  <footer>แบบประเมิน 8Q &middot; ใช้เพื่อการคัดกรองเบื้องต้นเท่านั้น</footer>
+</div>
+
+<script>
+  /* ---------- ข้อมูลคำถามและคะแนน ---------- */
+  var YN = function (yesScore) {
+    return [
+      { label: "ไม่ใช่", score: 0 },
+      { label: "ใช่", score: yesScore }
+    ];
+  };
+
+  var QUESTIONS = [
+    { id: "q1", no: "1", text: "ในเดือนที่ผ่านมารวมทั้งวันนี้ คิดอยากตายหรือคิดว่าตายไปจะดีกว่า", options: YN(1) },
+    { id: "q2", no: "2", text: "ตั้งแต่เดือนก่อนจนถึงวันนี้ อยากทำร้ายตัวเองหรือทำให้ตัวเองบาดเจ็บ", options: YN(2) },
+    {
+      id: "q3", no: "3",
+      text: "ตั้งแต่เดือนก่อนจนถึงวันนี้ คิดเกี่ยวกับการฆ่าตัวตาย",
+      options: YN(6),
+      subs: [
+        {
+          id: "q3_1", no: "3.1",
+          text: "ท่านสามารถควบคุมความอยากฆ่าตัวตายที่ท่านคิดอยู่นั้นได้หรือไม่",
+          options: [{ label: "ได้", score: 0 }, { label: "ไม่ได้", score: 8 }]
+        },
+        {
+          id: "q3_2", no: "3.2",
+          text: "บอกไม่ได้ว่าคงจะไม่ทำตามความคิดนั้นในขณะนี้",
+          options: YN(8)
+        }
+      ]
+    },
+    { id: "q4", no: "4", text: "ตั้งแต่เดือนก่อนจนถึงวันนี้ มีแผนการที่จะฆ่าตัวตาย", options: YN(8) },
+    { id: "q5", no: "5", text: "ตั้งแต่เดือนก่อนจนถึงวันนี้ ได้เตรียมการที่จะทำร้ายตัวเองหรือเตรียมการจะฆ่าตัวตายโดยตั้งใจว่าจะให้ตายจริงๆ", options: YN(9) },
+    { id: "q6", no: "6", text: "ตั้งแต่เดือนก่อนจนถึงวันนี้ ได้ทำให้ตนเองบาดเจ็บแต่ไม่ตั้งใจที่จะทำให้เสียชีวิต", options: YN(4) },
+    { id: "q7", no: "7", text: "ตั้งแต่เดือนก่อนจนถึงวันนี้ ได้พยายามฆ่าตัวตาย โดยคาดหวัง/ตั้งใจที่จะให้ตาย", options: YN(10) },
+    { id: "q8", no: "8", text: "ตลอดชีวิตที่ผ่านมา ท่านเคยพยายามฆ่าตัวตาย", options: YN(4) }
+  ];
+
+  var LEVELS = {
+    none: {
+      label: "ไม่มีแนวโน้มจากแบบประเมินนี้",
+      advice: "จากการประเมินนี้ไม่พบแนวโน้มการฆ่าตัวตายในปัจจุบัน หากมีความทุกข์ใจหรือเครียดสะสม สามารถปรึกษาผู้ที่ไว้วางใจหรือผู้เชี่ยวชาญได้เสมอ"
+    },
+    mild: {
+      label: "แนวโน้มที่จะฆ่าตัวตายระดับน้อย",
+      advice: "มีแนวโน้มที่จะฆ่าตัวตายในปัจจุบัน ควรได้รับการบำบัดรักษาและดูแลตามระดับความรุนแรง เช่น การให้การปรึกษา ติดตามอาการอย่างใกล้ชิด และประเมินซ้ำเป็นระยะ"
+    },
+    moderate: {
+      label: "แนวโน้มที่จะฆ่าตัวตายระดับปานกลาง",
+      advice: "มีแนวโน้มที่จะฆ่าตัวตายในปัจจุบัน ควรได้รับการบำบัดรักษาและดูแลตามระดับความรุนแรง โดยบุคลากรสุขภาพจิตหรือแพทย์โดยเร็ว และมีผู้ใกล้ชิดคอยดูแล"
+    },
+    severe: {
+      label: "แนวโน้มที่จะฆ่าตัวตายระดับรุนแรง",
+      advice: "มีแนวโน้มที่จะฆ่าตัวตายในปัจจุบันระดับรุนแรง ควรได้รับการบำบัดรักษาจากแพทย์/จิตแพทย์โดยเร็วที่สุด ไม่ควรอยู่คนเดียว"
+    }
+  };
+
+  /* ---------- ตัวช่วย ---------- */
+  function $(id) { return document.getElementById(id); }
+
+  function optionsHTML(name, options) {
+    return options.map(function (o, i) {
+      return '<label class="opt">' +
+               '<input type="radio" name="' + name + '" value="' + i + '">' +
+               '<span>' + o.label + '</span>' +
+             '</label>';
+    }).join("");
+  }
+
+  function renderQuestions() {
+    $("questions").innerHTML = QUESTIONS.map(function (q) {
+      var subs = "";
+      if (q.subs) {
+        subs = '<div class="sub-wrap" id="subwrap-' + q.id + '">' +
+          q.subs.map(function (s) {
+            return '<div class="sub-q" id="card-' + s.id + '">' +
+                     '<p class="sub-label"><span class="sub-tag">' + s.no + '</span>' + s.text + '</p>' +
+                     '<div class="options">' + optionsHTML(s.id, s.options) + '</div>' +
+                   '</div>';
+          }).join("") +
+        '</div>';
+      }
+      return '<div class="q-card" id="card-' + q.id + '">' +
+               '<p class="q-title"><span class="q-num">' + q.no + '</span><span>' + q.text + '</span></p>' +
+               '<div class="options">' + optionsHTML(q.id, q.options) + '</div>' +
+               subs +
+             '</div>';
+    }).join("");
+  }
+
+  /* ---------- อ่านค่าคำตอบ ---------- */
+  function getChoice(id) {
+    var el = document.querySelector('input[name="' + id + '"]:checked');
+    return el ? Number(el.value) : null;
+  }
+
+  function q3IsYes() { return getChoice("q3") === 1; }
+
+  function updateSubVisibility() {
+    var box = $("subwrap-q3");
+    if (q3IsYes()) box.classList.add("show"); else box.classList.remove("show");
+  }
+
+  function updateProgress() {
+    var required = QUESTIONS.length;
+    var done = 0;
+    QUESTIONS.forEach(function (q) { if (getChoice(q.id) !== null) done++; });
+    if (q3IsYes()) {
+      required += 2;
+      QUESTIONS[2].subs.forEach(function (s) { if (getChoice(s.id) !== null) done++; });
+    }
+    $("progressText").textContent = done + " / " + required;
+    $("progressBar").style.width = ((done / required) * 100) + "%";
+  }
+
+  /* ---------- ตรวจความครบถ้วน ---------- */
+  function validate() {
+    document.querySelectorAll(".missing").forEach(function (el) { el.classList.remove("missing"); });
+    var missing = [];
+    QUESTIONS.forEach(function (q) {
+      if (getChoice(q.id) === null) missing.push("card-" + q.id);
+      if (q.id === "q3" && q3IsYes()) {
+        q.subs.forEach(function (s) { if (getChoice(s.id) === null) missing.push("card-" + s.id); });
+      }
+    });
+    missing.forEach(function (id) { $(id).classList.add("missing"); });
+    return missing;
+  }
+
+  /* ---------- คำนวณคะแนน ---------- */
+  function calculate() {
+    var rows = [];
+    var total = 0;
+
+    QUESTIONS.forEach(function (q) {
+      var c = getChoice(q.id);
+      var opt = q.options[c];
+      rows.push({ no: q.no, answer: opt.label, score: opt.score, sub: false });
+      total += opt.score;
+
+      if (q.id === "q3" && c === 1) {
+        q.subs.forEach(function (s) {
+          var so = s.options[getChoice(s.id)];
+          rows.push({ no: s.no, answer: so.label, score: so.score, sub: true });
+          total += so.score;
+        });
+      }
+    });
+
+    var key = "none";
+    if (total >= 17) key = "severe";
+    else if (total >= 9) key = "moderate";
+    else if (total >= 1) key = "mild";
+
+    return { rows: rows, total: total, key: key, level: LEVELS[key] };
+  }
+
+  /* ---------- แสดงผล ---------- */
+  function showResult(r) {
+    $("totalScore").textContent = r.total;
+    $("levelText").textContent = r.level.label;
+    $("adviceText").textContent = r.level.advice;
+
+    var urgent = r.key === "severe";
+    var help = $("helpBox");
+    help.className = "help-box" + (urgent ? " urgent" : "");
+    help.innerHTML =
+      "<strong>" + (urgent ? "ควรขอความช่วยเหลือทันที" : "ช่องทางขอความช่วยเหลือ") + "</strong>" +
+      "<ul>" +
+        "<li>สายด่วนสุขภาพจิต <strong>1323</strong> (โทรฟรี 24 ชั่วโมง)</li>" +
+        "<li>บริการการแพทย์ฉุกเฉิน <strong>1669</strong></li>" +
+        (urgent ? "<li>อย่าอยู่คนเดียว ให้คนใกล้ชิดอยู่ด้วย และไปโรงพยาบาลที่ใกล้ที่สุด</li>" : "") +
+      "</ul>";
+
+    $("formView").classList.add("hidden");
+    $("resultView").classList.remove("hidden");
+    $("subText").textContent = "ผลการประเมิน";
+    window.scrollTo(0, 0);
+  }
+
+  function showForm() {
+    $("resultView").classList.add("hidden");
+    $("formView").classList.remove("hidden");
+    $("subText").textContent = "กรุณาตอบให้ครบทุกข้อ แล้วกดดูผลการประเมิน";
+    window.scrollTo(0, 0);
+  }
+
+  /* ---------- เหตุการณ์ ---------- */
+  function onSubmit(e) {
+    if (e && e.preventDefault) e.preventDefault();
+    var err = $("errorMsg");
+    try {
+      var missing = validate();
+      if (missing.length) {
+        err.textContent = "กรุณาตอบคำถามให้ครบทุกข้อ (ข้อที่ยังไม่ได้ตอบถูกไฮไลต์ไว้)";
+        err.classList.add("show");
+        $(missing[0]).scrollIntoView({ behavior: "smooth", block: "center" });
+        return false;
+      }
+      err.classList.remove("show");
+      showResult(calculate());
+    } catch (ex) {
+      err.textContent = "เกิดข้อผิดพลาดในการคำนวณ: " + ex.message;
+      err.classList.add("show");
+    }
+    return false;
+  }
+
+  $("form").addEventListener("submit", onSubmit);
+
+  $("form").addEventListener("change", function () {
+    updateSubVisibility();
+    updateProgress();
+    $("errorMsg").classList.remove("show");
+  });
+
+  function resetAll() {
+    $("form").reset();
+    document.querySelectorAll(".missing").forEach(function (el) { el.classList.remove("missing"); });
+    $("errorMsg").classList.remove("show");
+    updateSubVisibility();
+    updateProgress();
+  }
+
+  $("resetBtn").addEventListener("click", function () {
+    resetAll();
+    window.scrollTo(0, 0);
+  });
+
+  $("newBtn").addEventListener("click", function () {
+    resetAll();
+    showForm();
+  });
+
+  /* เริ่มต้น */
+  renderQuestions();
+  updateProgress();
+</script>
+</body>
+</html>
